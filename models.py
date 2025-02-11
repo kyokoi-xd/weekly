@@ -10,11 +10,7 @@ class User(db.Model):
 
 
     def __repr__(self):
-<<<<<<< HEAD
         return f'<User {self.name}>'
     
     def to_dict(self):
         return {"id": self.id, "name": self.name}
-=======
-        return f'<User {self.name}>'
->>>>>>> 0cd55705017f3957d85537e17e07e3d3a0c9f602
