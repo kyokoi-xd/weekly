@@ -23,7 +23,7 @@ def add_user():
         return jsonify({'message': 'User added successfully', 'id': new_user.id}), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({'message': 'User not added successfully', 'id': new_user.id}), 201
+        return jsonify({'message': 'User not added successfully', 'id': new_user.id}), 500
 
 @app_routes.route('/users', methods=['GET'])
 def get_users():
@@ -38,28 +38,35 @@ def get_users():
 
 @app_routes.route('/users/<int:id>', methods=['GET'])
 def get_user_by_id(id):
-    user_by_filter = User.query.filter_by(id=id).first()
+    user_by_filter = db.session.get(User, id)
     if user_by_filter:
-        return jsonify(vars(user_by_filter))
+        return jsonify(user_by_filter.to_dict())
     return jsonify({"error": "User not found"}), 404
 
 @app_routes.route('/users/<int:id>', methods=['PUT'])
 def update_user_by_id(id):
     data = request.get_json()
     new_name = data.get('name')
+    if not new_name:
+        return jsonify({'message': 'Name field is required'}), 400
     try:
         update_user = User.query.filter_by(id=id).first()
+
+        if not update_user:
+            return jsonify({'message': 'User not found'})
+        
         update_user.name = new_name
         db.session.commit()
-        return jsonify({'message': 'User update successfully', 'id': update_user.id}), 201
+
+        return jsonify({'message': 'User update successfully', 'id': update_user.id}), 200
     except Exception as e:
         db.session.rollback()
-        return jsonify({'message': 'User not update successfully', 'id': update_user.id}), 201
+        return jsonify({'message': 'User not update successfully', 'id': update_user.id}), 500
     
 @app_routes.route('/users/<id>', methods=['DELETE'])
 def delete_user_by_id(id):
     try:
-        delete_user = User.query.get(id)
+        delete_user = db.session.get(User, id)
         if delete_user:
             db.session.delete(delete_user)
             db.session.commit()
